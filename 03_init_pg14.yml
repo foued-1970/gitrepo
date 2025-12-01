@@ -1,0 +1,35 @@
+---
+- name: "Initialize PostgreSQL 14 database cluster"
+  hosts: all
+  tasks:
+
+  - name: "1) Initialize database cluster"
+    shell: /usr/pgsql-14/bin/postgresql-14-setup initdb
+
+    - name: "2) Start PostgreSQL service"
+      service:
+        name: postgresql-14
+        state: started
+
+    - name: "3) Create DBA user"
+      become: yes
+      become_user: postgres
+      postgresql_user:
+        name: dba
+        db: postgres
+        password: "Cesar-07"
+        priv: "ALL"
+
+    - name: "4) Configure pg_hba.conf"
+      become: yes
+      become_user: postgres
+      blockinfile:
+        dest: "/var/lib/pgsql/14/data/pg_hba.conf"
+        insertafter: "# TYPE  DATABASE        USER            ADDRESS                 METHOD"
+        block: |
+          local   all             dba                 trust
+
+    - name: "5) Reload configuration"
+      become: yes
+      become_user: postgres
+      shell: /usr/pgsql-14/bin/pg_ctl reload -D /var/lib/pgsql/14/data
