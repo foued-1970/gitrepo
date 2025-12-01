@@ -1,0 +1,41 @@
+---
+- name: "Install PostgreSQL 14"
+  hosts: all
+
+  tasks:
+
+    - name: "1) Download PostgreSQL Repository RPM"
+      get_url:
+        url: https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+        dest: /etc/yum.repos.d/pgdg-redhat-repo-latest.noarch.rpm
+        validate_certs: no
+
+    - name: "2) Configure repository"
+      yum:
+        name: /etc/yum.repos.d/pgdg-redhat-repo-latest.noarch.rpm
+        state: present
+
+    - name: "3) Update repository"
+      shell: yum -y update
+
+    - name: "4) Add EPEL repository"
+      yum:
+        state: latest
+        name: epel-release
+      vars:
+        ansible_python_interpreter: /bin/python
+
+    - name: "5) Enable EPEL repository"
+      ini_file:
+        dest: /etc/yum.repos.d/epel.repo
+        section: epel
+        option: enabled
+        value: 1
+
+    - name: "6) Install PostgreSQL 14"
+      yum:
+        state: latest
+        name:
+          - postgresql14-server
+      vars:
+        ansible_python_interpreter: /bin/python
